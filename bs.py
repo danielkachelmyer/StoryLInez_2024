@@ -17,12 +17,25 @@ def get_soup(url):
 
 def extract_images(soup, base_url):
     images = []
-    for idx, img_tag in enumerate(soup.find_all('img', {'src': re.compile('.jpg')})):
-        img_url = img_tag.get('src')
+    # Extract images from <img> tags
+    for idx, img_tag in enumerate(soup.find_all('img', src=True)):
+        img_url = img_tag['src']
         if img_url and not img_url.startswith('data:'):
             full_url = urljoin(base_url, img_url)
             images.append(full_url)
             download_image(full_url, f'image_{idx+1}.jpg')
+    
+    # Extract background images from inline styles
+    for idx, div in enumerate(soup.find_all('div', style=True)):
+        style = div['style']
+        img_url_match = re.search(r'url\((.*?)\)', style)
+        if img_url_match:
+            img_url = img_url_match.group(1).strip('"').strip("'")
+            if img_url and not img_url.startswith('data:'):
+                full_url = urljoin(base_url, img_url)
+                images.append(full_url)
+                download_image(full_url, f'background_image_{idx+1}.jpg')
+    
     return images
 
 def extract_colors(soup):
