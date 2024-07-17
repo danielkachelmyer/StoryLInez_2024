@@ -1,0 +1,16 @@
+## Lets start with the following features and go on from there 
+Templates 
+Text Editing 
+Image Editing 
+Shapes 
+Colors 
+Layers (This is a bit more complex but useful)
+
+
+
+# Packages and Open source stuff 
+
+OpenCV 
+
+
+
