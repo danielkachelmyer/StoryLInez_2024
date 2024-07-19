@@ -108,16 +108,8 @@ def add_image_overlay(background_image_path, overlay_image_path, x, y):
     background = cv2.imread(background_image_path)
     overlay = cv2.imread(overlay_image_path, -1)  # Use -1 to include alpha channel if present
     
-    # Overlay the image onto the background
-    y_end = y + overlay.shape[0]
-    x_end = x + overlay.shape[1]
-    alpha_overlay = overlay[:, :, 3] / 255.0
-    alpha_background = 1.0 - alpha_overlay
-    
-    for c in range(0, 3):
-        background[y:y_end, x:x_end, c] = (alpha_overlay * overlay[:, :, c] +
-                                            alpha_background * background[y:y_end, x:x_end, c])
-    
+    x_offset = y_offset = 50
+    background[y_offset:y_offset+overlay.shape[0], x_offset:x_offset+overlay.shape[1]] = overlay
     # Display the result (optional)
     cv2.imshow('Result Image', background)
     cv2.waitKey(0)
