@@ -11,6 +11,11 @@ Layers (This is a bit more complex but useful)
 # Packages and Open source stuff 
 
 OpenCV 
-
+Image Editing:
+-save image in different formats: .jpeg, .json
+-cropping (entire image, one part of the image), flipping
+-opacity
+-insert text
+-adding image
 
 

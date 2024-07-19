@@ -68,13 +68,22 @@ chess = cv2.imread('assets/chessboard.png', 1)
 chess = cv2.resize(chess, (0, 0), fx = 0.75, fy = 0.75) # resize
 chess = cv2.cvtColor(chess, cv2.COLOR_BGR2GRAY)
 
+"""
 corners = cv2.goodFeaturesToTrack(chess, 100, 0.01, 10)
 corners = np.int0(corners)
 
 for corner in corners:
     x, y = corner.ravel()
     cv2.circle(chess, (x, y), 5, [255, 0, 0], -1)
+"""
 
-cv2.imshow('Image',chess)
+
+test_img = cv2.imread('image_14.jpg', 1)
+test_img = cv2.flip(test_img, 0)
+
+soccer = cv2.imread('assets/soccer_practice.jpg', 1)
+
+cv2.imshow('Image', img)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
+
