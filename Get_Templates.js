@@ -12,9 +12,8 @@ const Get_All_Templates=async()=>{
 
 //Get_All_Templates()
 
-const Get_Template_ID=async(ID)=>{
+const Get_Template_ID=async(brandTemplateId)=>{
   try {
-    const brandTemplateId="DAGLtZh_G3c"
     const data=await fetch(`https://api.canva.com/rest/v1/brand-templates/${brandTemplateId}`, {  method: 'GET', headers: {   'Authorization': `Bearer ${token}`, }, })
     const res=await data.json();
     console.log(res);
@@ -22,7 +21,7 @@ const Get_Template_ID=async(ID)=>{
     console.log(error.message);
   }
 }
-//Get_Template_ID()
+//Get_Template_ID("DAGLtZh_G3c")
 
 
 
