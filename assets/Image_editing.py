@@ -100,9 +100,7 @@ def add_text(image_path, text):
 #add_text('assets/image_3.jpg', "add some text")
 
 #adding an image
-
-import cv2
-
+#must add in coordinates on where to add the image
 def add_image_overlay(background_image_path, overlay_image_path, x, y):
     # Read the background and overlay images
     background = cv2.imread(background_image_path)

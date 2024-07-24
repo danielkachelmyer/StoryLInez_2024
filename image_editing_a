@@ -1,5 +1,6 @@
 import cv2
 from PIL import Image
+import os
 """
 Image Editing:
 -save image in different formats: .jpeg, .json
@@ -82,12 +83,12 @@ def add_image_overlay(background_image_path, overlay_image_path, x, y):
     cv2.destroyAllWindows()
 
     return background
-
+"""
 # Example usage:
 background_image_path = 'assets/image_3.jpg'  # Replace with your background image path
 overlay_image_path = 'assets/image_5.jpg'  # Replace with your overlay image path
 x, y = 100, 50  # Position where overlay image will be placed
-
+"""
 # Add overlay image onto the background image
 #result_image = add_image_overlay(background_image_path, overlay_image_path, x, y)
 
@@ -98,58 +99,66 @@ def dimension(img_path):
     print(f"Height: {height} pixels")
 
 def menu():
-    print("1. Convert")
-    print("2. Crop Image")
-    print("3. Flip Image")
-    print("4. Add text")
-    print("5. Add image overlay")
-    print("6. Dimensions of Image")
-    choice = input("Enter the number of your choice ")
-    
-    if choice == '1':# Convert
-        print("You chose Option 1")
-        img_path = input("what is the path of the image ")
-        save_type = input("what type do you want to save it as ")
-        output_path = input("what do you want to call it ")
-        convert_image_format(img_path, output_path, save_type)
-    elif choice == '2':# Crop
-        print("You chose Option 2")
-        img_path = input("what is the path of the image ")
-        x = int(input("x coord "))
-        y = int(input("y coord "))
-        height = int(input("hieght of crop "))
-        width = int(input("width of crop "))
-        crop_image(img_path, x, y, width, height)
+    image_path = input("First type out the image path")
+    if os.path.isfile(image_path):
+        print("1. Convert")
+        print("2. Crop Image")
+        print("3. Flip Image")
+        print("4. Add text")
+        print("5. Add image overlay")
+        print("6. Dimensions of Image")
+        choice = input("Enter the number of your choice ")
+        if choice == '1':# Convert
+            print("You chose Option 1")
+            save_type = input("what type do you want to save it as ")
+            output_path = input("what do you want to call it ")
+            convert_image_format(image_path, output_path, save_type)
+        elif choice == '2':# Crop
+            print("You chose Option 2")
+            x = int(input("x coord "))
+            y = int(input("y coord "))
+            height = int(input("hieght of crop "))
+            width = int(input("width of crop "))
+            crop_image(image_path, x, y, width, height)
         #x, y, width, height = 100, 50, 300, 200 
-    elif choice == '3':# Flip
-        print("You chose Option 3")
-        img_path = input("what is the path of the image ")
-        direction = int(input("0 for x axis, 1 for y axis "))
-        flip_img(img_path, direction)
-    elif choice == '4':# Text
-        print("You chose Option 4")
-        img_path = input("what is the path of the image ")
-        text = input("what text do you want it to say ")
-        x = int(input("x coord "))
-        y = int(input("y coord "))
-        add_text(img_path, text, x, y)
-    elif choice == '5':# Overlay
-        print("You chose Option 5")
-        background_image_path = input("background image path ")
-        overlay_image_path = input("overlay image ")
-        x = int(input("x coord "))
-        y = int(input("y coord "))
-        result_image = add_image_overlay(background_image_path, overlay_image_path, x, y)
-    elif choice == '6':
-        print("You chose opition 6")
-        img_path = input("what is the path of the image ")
-        dimension(img_path)
-    elif choice == '0':
-        print("Exiting...")
-        return
+        elif choice == '3':# Flip
+            print("You chose Option 3")
+            direction = int(input("0 for x axis, 1 for y axis "))
+            flip_img(image_path, direction)
+        elif choice == '4':# Text
+            print("You chose Option 4")
+            text = input("what text do you want it to say ")
+            x = int(input("x coord "))
+            y = int(input("y coord "))
+            add_text(image_path, text, x, y)
+        elif choice == '5':# Overlay
+            print("You chose Option 5")
+            overlay_image_path = input("overlay image ")
+            x = int(input("x coord "))
+            y = int(input("y coord "))
+            result_image = add_image_overlay(image_path, overlay_image_path, x, y)
+        elif choice == '6':
+            print("You chose opition 6")
+            dimension(image_path)
+        elif choice == '0':
+            print("Exiting...")
+            return
+        else:
+            print("Invalid choice. Please enter a number from 1 to 5 or 0 to exit.")
     else:
-        print("Invalid choice. Please enter a number from 1 to 5 or 0 to exit.")
+        print(f"The image file {image_path} does not exist.")
+    
+    
+    
 
 
 if __name__ == "__main__":
     menu()
+
+
+"""
+get json file
+extract url of image
+make automated def to put text on image
+and overlay image onto background
+"""
