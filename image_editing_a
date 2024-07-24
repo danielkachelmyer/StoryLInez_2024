@@ -174,8 +174,10 @@ def menu():
     
 
 def automatic():
+    url = extract_json("test_json.json")
+    download_image(url, "test_img.jpg")
     img_path = 'assets/image_3.jpg'
-    img_path = cv2.imread(img_path)
+    img_path = cv2.imread("test_img.jpg")
     xy = get_dimensions(img_path)
     width = xy[0]
     height = xy[1]
@@ -189,19 +191,12 @@ def automatic():
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-
-
-def extract_img_string_from_json(json_file):
-    img_path = ""
-    text = ""
+def extract_json(json_file):
     url = ""
     try:
         with open(json_file, 'r') as f:
             data = json.load(f)
-            text = data.get('title', None)
             url = data.get('thumbnail', {}).get('url', None)
-            print("url " + str(url))
-            print(text)
             return url
     except FileNotFoundError:
         print(f"Error: The file '{json_file}' was not found.")
@@ -210,24 +205,6 @@ def extract_img_string_from_json(json_file):
         print(f"Error decoding JSON in file '{json_file}': {e}")
         return None
 
-def get_soup(url):
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-    }
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        return BeautifulSoup(response.text, 'html.parser')
-    else:
-        return None
-def extract_images(soup, base_url):
-    images = []
-    for idx, img_tag in enumerate(soup.find_all('img', {'src': re.compile('.jpg')})):
-        img_url = img_tag.get('src')
-        if img_url and not img_url.startswith('data:'):
-            full_url = urljoin(base_url, img_url)
-            images.append(full_url)
-            download_image(full_url, f'image_{idx+1}.jpg')
-    return images
 
 def download_image(url, filename):
     response = requests.get(url)
