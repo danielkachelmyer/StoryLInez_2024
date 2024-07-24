@@ -216,10 +216,9 @@ def download_image(url, filename):
 
 if __name__ == "__main__":
     #menu()
-    #automatic()
-    #extract_img_string_from_json('test_json.json')
-    download_image("https://document-export.canva.com/h_G3c/DAGLtZh_G3c/2/thumbnail/0001.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUHWDTJW6UD%2F20240724%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240724T150242Z&X-Amz-Expires=26158&X-Amz-Signature=59743c31deaecb37f17c7fdff8e1d22db4f6fe062ada3761fa844916cb9b36a5&X-Amz-SignedHeaders=host&response-expires=Wed%2C%2024%20Jul%202024%2022%3A18%3A40%20GMT"
-    , "test_img_.jpg")
+    automatic()
+    #download_image("https://document-export.canva.com/h_G3c/DAGLtZh_G3c/2/thumbnail/0001.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUHWDTJW6UD%2F20240724%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240724T150242Z&X-Amz-Expires=26158&X-Amz-Signature=59743c31deaecb37f17c7fdff8e1d22db4f6fe062ada3761fa844916cb9b36a5&X-Amz-SignedHeaders=host&response-expires=Wed%2C%2024%20Jul%202024%2022%3A18%3A40%20GMT"
+    #, "test_img_.jpg")
 
 
 
