@@ -2,6 +2,10 @@ import cv2
 from PIL import Image
 import os
 import json
+import requests
+from PIL import Image
+from bs4 import BeautifulSoup
+
 """
 Image Editing:
 -save image in different formats: .jpeg, .json
@@ -11,6 +15,7 @@ Image Editing:
 -adding image
 
 *add resize
+*add automatic func to take json file info, and make a photo with text and new image overlayed on it
 """
 
 #save image in diff formats
@@ -38,49 +43,38 @@ def convert_image_format(input_image_path, output_image_path, output_format):
     EPS: 'EPS'
 """
 #Crop the base image
-def crop_image(image_path, x, y, width, height, display):
+def crop_image(img, x, y, width, height, display):
     #x, y = pos on img, width/height tells how the crop should go
-    img = cv2.imread(image_path)
     cropped_img = img[y:y+height, x:x+width]
     # Display the original and cropped images (optional)
     if display:
-        cv2.imshow('Original Image', cv2.imread(image_path))
         cv2.imshow('Cropped Image', cropped_img)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
         
     return cropped_img
 #flip the image
-def flip_img(image_path, direction, display):
+def flip_img(flipped_img, direction, display):
     #0 means around x axis, 1 means y axis
-    flipped_img = cv2.imread(image_path, 1)
     flipped_img = cv2.flip(flipped_img, direction)
     if display:
-        cv2.imshow('Original Image', cv2.imread(image_path))
         cv2.imshow('Flipped Image', flipped_img)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
+    return flipped_img
 #insert text
-# need to add parameters on where to add the text
 def add_text(image_path, text, x, y, display):
     font = cv2.FONT_HERSHEY_SIMPLEX
     height = 500
-    input_img = cv2.imread(image_path, 1)
     coord_tuple = (x, y)
-    #(image, text, org, font, fontScale, color[, thickness[, lineType[, bottomLeftOrigin]]])
-    #org is a tuple of the x y coords on where to place the text, (200, height -10)
-    text_img = cv2.putText(input_img, text, coord_tuple, font, 4, [0,0,0], 5, cv2.LINE_AA)
+    text_img = cv2.putText(image_path, text, coord_tuple, font, 4, [0,0,0], 5, cv2.LINE_AA)
     if display:
-        cv2.imshow('Original Image', cv2.imread(image_path))
         cv2.imshow('Image with text', text_img)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
+    return text_img
 #adding an image
-def add_image_overlay(background_image_path, overlay_image_path, x, y, display):
-    # Read the background and overlay images
-    background = cv2.imread(background_image_path)
-    overlay = cv2.imread(overlay_image_path, -1)  # Use -1 to include alpha channel if present
-    
+def add_image_overlay(background, overlay, x, y, display):
     x_offset = y_offset = 50
     background[y:y+overlay.shape[0], x:x+overlay.shape[1]] = overlay
 
@@ -90,17 +84,23 @@ def add_image_overlay(background_image_path, overlay_image_path, x, y, display):
         cv2.destroyAllWindows()
 
     return background
+
+def resize(image, width, height, display):
+    resized_image = cv2.resize(image, (width, height))
+    if display:
+        cv2.imshow('Result Image', resized_image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+    return resized_image
+        
 """
 # Example usage:
 background_image_path = 'assets/image_3.jpg'  # Replace with your background image path
 overlay_image_path = 'assets/image_5.jpg'  # Replace with your overlay image path
 x, y = 100, 50  # Position where overlay image will be placed
 """
-# Add overlay image onto the background image
-#result_image = add_image_overlay(background_image_path, overlay_image_path, x, y)
 
-def dimension(img_path):
-    image = cv2.imread(img_path)
+def get_dimensions(image):
     height, width, _ = image.shape
     print(f"Width: {width} pixels")
     print(f"Height: {height} pixels")
@@ -110,50 +110,59 @@ def menu():
     image_path = input("First type out the image path ")
     bool_display = input("do you want to display the image: True or False ")
     display = True
+    img_object = None
     if bool_display == "True":
         display = True
     else:
         display = False
     if os.path.isfile(image_path):
+        img_object = cv2.imread(image_path)
         print("1. Convert")
         print("2. Crop Image")
         print("3. Flip Image")
         print("4. Add text")
         print("5. Add image overlay")
         print("6. Dimensions of Image")
+        print("7. Resize Image")
         choice = input("Enter the number of your choice ")
         if choice == '1':# Convert
             print("You chose Option 1")
             save_type = input("what type do you want to save it as ")
             output_path = input("what do you want to call it ")
-            convert_image_format(image_path, output_path, save_type)
+            convert_image_format(img_object, output_path, save_type)
         elif choice == '2':# Crop
             print("You chose Option 2")
             x = int(input("x coord "))
             y = int(input("y coord "))
             height = int(input("hieght of crop "))
             width = int(input("width of crop "))
-            crop_image(image_path, x, y, width, height, display)
+            crop_image(img_object, x, y, width, height, display)
         #x, y, width, height = 100, 50, 300, 200 
         elif choice == '3':# Flip
             print("You chose Option 3")
             direction = int(input("0 for x axis, 1 for y axis "))
-            flip_img(image_path, direction, display)
+            flip_img(img_object, direction, display)
         elif choice == '4':# Text
             print("You chose Option 4")
             text = input("what text do you want it to say ")
             x = int(input("x coord "))
             y = int(input("y coord "))
-            add_text(image_path, text, x, y, display)
+            add_text(img_object, text, x, y, display)
         elif choice == '5':# Overlay
             print("You chose Option 5")
             overlay_image_path = input("overlay image ")
+            overlay_img_object = cv2.read(overlay_image_path)
             x = int(input("x coord "))
             y = int(input("y coord "))
-            result_image = add_image_overlay(image_path, overlay_image_path, x, y, display)
-        elif choice == '6':
+            result_image = add_image_overlay(img_object, overlay_img_object, x, y, display)
+        elif choice == '6':# Dimensions
             print("You chose opition 6")
-            dimension(image_path, display)
+            get_dimensions(img_object)
+        elif choice == '7': # Resize
+            print("You chose opition 7")
+            x = int(input("new width "))
+            y = int(input("new height "))
+            resize(img_object, x, y, display)
         elif choice == '0':
             print("Exiting...")
             return
@@ -166,33 +175,76 @@ def menu():
 
 def automatic():
     img_path = 'assets/image_3.jpg'
-    xy = dimension(img_path)
+    img_path = cv2.imread(img_path)
+    xy = get_dimensions(img_path)
     width = xy[0]
     height = xy[1]
     #adjust pixels of image to have placement of text
     height = int(height * 0.25)
     width = int(width * 0.5)
     print(str(width) + " " + str(height))
-
-if __name__ == "__main__":
-   # menu()
-    automatic()
-
+    new_img = resize(img_path, 1300, 1300, False)
+    new_img = add_text(new_img, "text", height, width, False)
+    cv2.imshow('Result Image', new_img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 
 
 def extract_img_string_from_json(json_file):
+    img_path = ""
+    text = ""
+    url = ""
     try:
         with open(json_file, 'r') as f:
             data = json.load(f)
-            img_string = data.get('img', None)
-            return img_string
+            text = data.get('title', None)
+            url = data.get('thumbnail', {}).get('url', None)
+            print("url " + str(url))
+            print(text)
+            return url
     except FileNotFoundError:
         print(f"Error: The file '{json_file}' was not found.")
         return None
     except json.JSONDecodeError as e:
         print(f"Error decoding JSON in file '{json_file}': {e}")
         return None
+
+def get_soup(url):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        return BeautifulSoup(response.text, 'html.parser')
+    else:
+        return None
+def extract_images(soup, base_url):
+    images = []
+    for idx, img_tag in enumerate(soup.find_all('img', {'src': re.compile('.jpg')})):
+        img_url = img_tag.get('src')
+        if img_url and not img_url.startswith('data:'):
+            full_url = urljoin(base_url, img_url)
+            images.append(full_url)
+            download_image(full_url, f'image_{idx+1}.jpg')
+    return images
+
+def download_image(url, filename):
+    response = requests.get(url)
+    if response.status_code == 200:
+        with open(filename, 'wb') as file:
+            file.write(response.content)
+
+
+
+if __name__ == "__main__":
+    #menu()
+    #automatic()
+    #extract_img_string_from_json('test_json.json')
+    url_to_image("https://document-export.canva.com/h_G3c/DAGLtZh_G3c/2/thumbnail/0001.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUHWDTJW6UD%2F20240724%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240724T150242Z&X-Amz-Expires=26158&X-Amz-Signature=59743c31deaecb37f17c7fdff8e1d22db4f6fe062ada3761fa844916cb9b36a5&X-Amz-SignedHeaders=host&response-expires=Wed%2C%2024%20Jul%202024%2022%3A18%3A40%20GMT"
+    )
+
+
 
 
 """
