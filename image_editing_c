@@ -1,0 +1,306 @@
+import cv2
+from PIL import Image
+import os
+import json
+import requests
+from PIL import Image
+import numpy as np
+"""
+Image Editing:
+-save image in different formats: .jpeg, .json
+-cropping (entire image, one part of the image), flipping
+-opacity
+-insert text
+-adding image
+-add resize
+-add automatic func to take json file info, and make a photo with text and new image overlayed on it
+
+* puts the main picture in different positions agianst the background
+* opacity for it to blend in the background
+* use masks to take out a shape for the smaller image
+* move text to be on the background image
+"""
+
+#save image in diff formats
+def convert_image_format(input_image_path, output_image_path, output_format):
+    try:
+        # Open the image file
+        img = Image.open(input_image_path)
+        
+        # Save it in the desired format
+        img.save(output_image_path, format=output_format)
+        
+        print(f"Image saved successfully as {output_image_path} in {output_format} format.")
+    except IOError:
+        print(f"Unable to save image as {output_image_path} in {output_format} format.")
+"""
+    JPEG: 'JPEG' or 'JPG'
+    PNG: 'PNG'
+    BMP: 'BMP'
+    GIF: 'GIF'
+    TIFF: 'TIFF' or 'TIF'
+    WebP: 'WebP'
+    ICO: 'ICO'
+    PPM/PGM/PBM: 'PPM', 'PGM', 'PBM'
+    PDF: 'PDF'
+    EPS: 'EPS'
+"""
+#Crop the base image
+def crop_image(img, x, y, width, height, display):
+    #x, y = pos on img, width/height tells how the crop should go
+    cropped_img = img[y:y+height, x:x+width]
+    # Display the original and cropped images (optional)
+    if display:
+        cv2.imshow('Cropped Image', cropped_img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        
+    return cropped_img
+#flip the image
+def flip_img(flipped_img, direction, display):
+    #0 means around x axis, 1 means y axis
+    flipped_img = cv2.flip(flipped_img, direction)
+    if display:
+        cv2.imshow('Flipped Image', flipped_img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+    return flipped_img
+#insert text
+def add_text(image_path, text, x, y, display):
+    # cv2.putText(image, text, org, font, fontScale, color[, thickness[, lineType[, bottomLeftOrigin]]])
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    font = cv2.FONT_HERSHEY_DUPLEX#chaning font type for pikachu image
+    font_scale = 4
+    coord_tuple = (x, y)
+    color = [0,0,0] # black
+    text_img = cv2.putText(image_path, text, coord_tuple, font, font_scale, color, 5, cv2.LINE_AA)
+    if display:
+        cv2.imshow('Image with text', text_img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+    return text_img
+#adding an image
+def add_image_overlay(background, overlay, x, y, display):
+    # x and y are the coords where the image will be placed
+    background[y:y+overlay.shape[0], x:x+overlay.shape[1]] = overlay
+
+    if display:
+        cv2.imshow('Result Image', background)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+    return background
+#resize an image
+def resize(image, width, height, display):
+    resized_image = cv2.resize(image, (width, height))
+    if display:
+        cv2.imshow('Result Image', resized_image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+    return resized_image
+        
+#change opacity of an image
+def opacity(image, opacity, display):
+  # 50% opacityalpha = np.clip(alpha, 0, 1)
+  # Create an image with the same size as the input image but fully transparent
+    overlay = np.zeros_like(image, dtype=np.uint8)
+    # Blend the original image and the transparent image
+    blended = cv2.addWeighted(image, opacity, overlay, 1 - opacity, 0)
+    if display:
+        cv2.imshow('Result Image', blended)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+    return blended 
+#get the width and height of an image in pixels
+def get_dimensions(image):
+    height, width, _ = image.shape
+    print(f"Width: {width} pixels")
+    print(f"Height: {height} pixels")
+    return [width, height]
+
+def menu():
+    image_path = input("First type out the image path ")
+    bool_display = input("do you want to display the image: True or False ")
+    display = True
+    img_object = None
+    if bool_display == "True":
+        display = True
+    else:
+        display = False
+    if os.path.isfile(image_path):
+        img_object = cv2.imread(image_path)
+        print("1. Convert")
+        print("2. Crop Image")
+        print("3. Flip Image")
+        print("4. Add text")
+        print("5. Add image overlay")
+        print("6. Dimensions of Image")
+        print("7. Resize Image")
+        choice = input("Enter the number of your choice ")
+        if choice == '1':# Convert
+            print("You chose Option 1")
+            save_type = input("what type do you want to save it as ")
+            output_path = input("what do you want to call it ")
+            convert_image_format(img_object, output_path, save_type)
+        elif choice == '2':# Crop
+            print("You chose Option 2")
+            x = int(input("x coord "))
+            y = int(input("y coord "))
+            height = int(input("hieght of crop "))
+            width = int(input("width of crop "))
+            crop_image(img_object, x, y, width, height, display)
+        #x, y, width, height = 100, 50, 300, 200 
+        elif choice == '3':# Flip
+            print("You chose Option 3")
+            direction = int(input("0 for x axis, 1 for y axis "))
+            flip_img(img_object, direction, display)
+        elif choice == '4':# Text
+            print("You chose Option 4")
+            text = input("what text do you want it to say ")
+            x = int(input("x coord "))
+            y = int(input("y coord "))
+            add_text(img_object, text, x, y, display)
+        elif choice == '5':# Overlay
+            print("You chose Option 5")
+            overlay_image_path = input("overlay image ")
+            overlay_img_object = cv2.read(overlay_image_path)
+            x = int(input("x coord "))
+            y = int(input("y coord "))
+            result_image = add_image_overlay(img_object, overlay_img_object, x, y, display)
+        elif choice == '6':# Dimensions
+            print("You chose opition 6")
+            get_dimensions(img_object)
+        elif choice == '7': # Resize
+            print("You chose opition 7")
+            x = int(input("new width "))
+            y = int(input("new height "))
+            resize(img_object, x, y, display)
+        elif choice == '0':
+            print("Exiting...")
+            return
+        else:
+            print("Invalid choice. Please enter a number from 1 to 5 or 0 to exit.")
+    else:
+        print(f"The image file {image_path} does not exist.")
+    
+#extract information from a json file
+def extract_json(json_file):
+    url = ""
+    title = ""
+    brand = ""
+    description = ""
+    try:
+        with open(json_file, 'r') as f:
+            data = json.load(f)
+            url = data.get('thumbnail', {}).get('url', None)
+            title = data.get('title')
+            brand = data.get('brand')
+            description = data.get('description')
+            tuple = [url, title, brand, description]
+            return tuple
+    except FileNotFoundError:
+        print(f"Error: The file '{json_file}' was not found.")
+        return None
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON in file '{json_file}': {e}")
+        return None
+
+#download an image from a url into jpeg format
+def download_image(url, filename):
+    response = requests.get(url)
+    if response.status_code == 200:
+        with open(filename, 'wb') as file:
+            file.write(response.content)
+
+#Create one of five template choices, by placing text on an image and that image on a background
+def automatic(option):
+    # declare variables for coords to place text
+    brand_x = 0
+    brand_y = 0
+    description_x = 0
+    description_y = 0
+    bg_x = 0
+    bg_y = 0
+
+    #gather string data from the json file
+    tupple = extract_json("test_json.json")
+    url = tupple [0]
+    title = tupple[1]
+    brand = tupple[2]
+    description = tupple[3]
+   
+    #later when background works, make it an argument in the method
+    background = cv2.imread('assets/images/image_15.jpg')
+    background = cv2.imread('assets/background_720.jpg')#test with car and blue background
+    background = resize(background, 1000, 1000, False)
+    download_image(url, "test_img.jpg")
+    img_path = cv2.imread("test_img.jpg")
+    img_path = cv2.imread('assets/car_720.jpg')
+    
+    #resize the image
+    new_img = resize(img_path, 1300, 1300, False)
+    
+    width = 1000
+    height = 1000
+    #adjust pixels of image to have placement of text
+    if option == 1: # top left BG
+        brand_x = int(width * 0.8)
+        brand_y = int(height * 0.8)
+        description_x = int(width * 0.2)
+        description_y = int(height * 0.8)
+        bg_x = 10
+        bg_y = 10
+    elif option == 2: #bottom right BG
+        brand_x = int(width * 0.2)
+        brand_y = int(height * 0.2)
+        description_x = int(width * 0.2)
+        description_y = int(height * 0.3)
+        bg_x = 500
+        bg_y = 500
+    elif option == 3: # center
+        brand_x = int(width * 0.5)
+        brand_y = int(height * 0.5)
+        description_x = int(width * 0.6)
+        description_y = int(height * 0.5)
+        bg_x = 250
+        bg_y = 250
+    elif option == 4: # mid right
+        brand_x = int(width * 0.8)
+        brand_y = int(height * 0.8)
+        description_x = int(width * 0.2)
+        description_y = int(height * 0.2)
+        bg_x = 500
+        bg_y = 250
+    elif option == 5:# bottom middle
+        brand_x = int(width * 0.5)
+        brand_y = int(height * 0.1)
+        description_x = int(width * 0.5)
+        description_y = int(height * 0.9)
+        bg_x = 300
+        bg_y = 500
+    else:
+        print("invalid choice")
+        return
+        
+    #add text in place on original image, (later add this text to the background)
+    new_img = resize(new_img, 500, 500, False)
+    new_img = opacity(new_img, 0.5, False)
+    new_img = add_image_overlay(background, new_img, bg_x, bg_y, False)
+    new_img = add_text(new_img, brand, brand_x, brand_y, False)
+    new_img = add_text(new_img, description, description_x, description_y, False)
+
+    cv2.imshow('Result Image', new_img)
+    cv2.waitKey(0)#asdfhgfd
+    cv2.destroyAllWindows()
+
+if __name__ == "__main__":
+    choice = int(input("pick a choice 1-5 "))
+    #menu()
+    automatic(choice)
+    #img = cv2.imread('assets/images/image_18.jpg')
+    #opacity(img, 0.9, True)
+    """
+    img = cv2.imread('assets/pokemon.jpg')
+    img = resize(img, 1000,1000,False)
+    img = add_text(img, 'Pikachu', 250, 800, True)
+    """
